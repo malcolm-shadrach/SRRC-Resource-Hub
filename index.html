@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neuro-Occupational Therapy Unit · SRRC</title>
+<meta name="description" content="Link hub for the Neuro-Occupational Therapy Unit, Sahaya Sri Ramachandra Rehabilitation Centre.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink-900:#000000;
+    --ink-800:#0A0A0A;
+    --ink-700:#161616;
+    --ink-600:#2A2A2A;
+    --paper:#FFFFFF;
+    --paper-dim:#8C8C8C;
+    --amber:#F2600C;
+    --amber-dim:#C94E09;
+    --mint:#FFFFFF;
+    --radius:14px;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    min-height:100%;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(242,96,12,0.16), transparent 60%),
+      linear-gradient(180deg, var(--ink-800) 0%, var(--ink-900) 100%);
+    color:var(--paper);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:64px 20px 40px;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  /* faint trace motif */
+  .trace{
+    position:fixed;
+    left:0; right:0; top:38%;
+    width:100%;
+    height:220px;
+    pointer-events:none;
+    opacity:0.10;
+    z-index:0;
+  }
+  .trace svg{ width:200%; height:100%; }
+  .trace path{
+    stroke:var(--mint);
+    stroke-width:1.4;
+    fill:none;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .trace svg{ animation: drift 48s linear infinite; }
+  }
+  @keyframes drift{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); }
+  }
+
+  main{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:520px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--mint);
+    margin-bottom:22px;
+    opacity:0.9;
+  }
+
+  .mark{
+    width:66px;
+    height:66px;
+    margin-bottom:22px;
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(26px, 6vw, 34px);
+    line-height:1.15;
+    text-align:center;
+    letter-spacing:0.01em;
+    margin:0 0 10px;
+    color:var(--paper);
+  }
+
+  .tagline{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:400;
+    font-size:16px;
+    text-align:center;
+    color:var(--paper-dim);
+    margin:0 0 44px;
+    max-width:340px;
+  }
+
+  .links{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .link-card{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    width:100%;
+    padding:18px 20px;
+    background:var(--ink-700);
+    border:1px solid var(--ink-600);
+    border-radius:var(--radius);
+    text-decoration:none;
+    color:var(--paper);
+    transition:transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    position:relative;
+  }
+
+  .link-card:hover, .link-card:focus-visible{
+    transform:translateY(-2px);
+    border-color:var(--amber);
+    background:#1F1F1F;
+  }
+
+  .link-card:focus-visible{
+    outline:2px solid var(--amber);
+    outline-offset:2px;
+  }
+
+  .icon{
+    flex:0 0 auto;
+    width:38px;
+    height:38px;
+    border-radius:10px;
+    background:rgba(242,96,12,0.14);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .icon svg{ width:20px; height:20px; stroke:var(--amber); }
+
+  .link-text{ flex:1 1 auto; min-width:0; }
+
+  .link-title{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:16px;
+    margin:0 0 2px;
+  }
+
+  .link-sub{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--paper-dim);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .arrow{
+    flex:0 0 auto;
+    color:var(--paper-dim);
+    transition:transform 0.18s ease, color 0.18s ease;
+  }
+  .link-card:hover .arrow{ transform:translateX(3px); color:var(--amber); }
+
+  footer{
+    margin-top:56px;
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    color:var(--paper-dim);
+    opacity:0.65;
+  }
+
+  footer span{ color:var(--mint); }
+</style>
+</head>
+<body>
+
+  <div class="trace" aria-hidden="true">
+    <svg viewBox="0 0 1600 220" preserveAspectRatio="none">
+      <path d="M0,110 C60,60 100,160 160,110 C220,60 260,160 320,110 C380,60 420,160 480,110 C540,60 580,160 640,110 C700,60 740,160 800,110 C860,60 900,160 960,110 C1020,60 1060,160 1120,110 C1180,60 1220,160 1280,110 C1340,60 1380,160 1440,110 C1500,60 1540,160 1600,110
+      C1660,60 1700,160 1760,110 C1820,60 1860,160 1920,110 C1980,60 2020,160 2080,110 C2140,60 2180,160 2240,110 C2300,60 2340,160 2400,110 C2460,60 2500,160 2560,110 C2620,60 2660,160 2720,110 C2780,60 2820,160 2880,110 C2940,60 2980,160 3040,110 C3100,60 3140,160 3200,110"/>
+    </svg>
+  </div>
+
+  <main>
+    <p class="eyebrow">SRRC &middot; Internal Resource Hub</p>
+
+    <svg class="mark" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <!-- dendrites -->
+      <path d="M50 8 C50 22 40 24 34 34" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M50 8 C50 22 60 24 66 34" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M50 8 L50 30" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M28 20 C34 26 34 30 38 36" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+      <path d="M72 20 C66 26 66 30 62 36" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+      <!-- soma -->
+      <circle cx="50" cy="40" r="9" fill="#F2600C"/>
+      <!-- axon into open hand -->
+      <path d="M50 49 L50 62" stroke="#F2600C" stroke-width="3" stroke-linecap="round"/>
+      <path d="M50 62 C40 66 30 66 24 78" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M50 62 C44 68 40 70 36 82" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M50 62 C50 70 50 74 50 86" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M50 62 C56 68 60 70 64 82" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M50 62 C60 66 70 66 76 78" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
+    </svg>
+
+    <h1>Neuro-Occupational Therapy Unit</h1>
+    <p class="tagline">Sahaya Sri Ramachandra Rehabilitation Centre</p>
+
+    <nav class="links" aria-label="Unit links">
+
+      <a class="link-card" href="https://malcolm-shadrach.github.io/SRRC-Inventory/" target="_blank" rel="noopener">
+        <span class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="1"></rect><rect x="3" y="14" width="18" height="6" rx="1"></rect><line x1="7" y1="7" x2="7" y2="7"></line><line x1="7" y1="17" x2="7" y2="17"></line></svg>
+        </span>
+        <span class="link-text">
+          <p class="link-title">Inventory</p>
+          <p class="link-sub">malcolm-shadrach.github.io/SRRC-Inventory</p>
+        </span>
+        <span class="arrow" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </span>
+      </a>
+
+      <a class="link-card" href="https://docs.google.com/spreadsheets/d/e/2PACX-1vR18PxI75zo7-yanHryiZAFh5D7ml33lJpfpOB34oIJyyec7eP9a--yhF0dP4nShp5jeFErgnVpnyCj/pubhtml" target="_blank" rel="noopener">
+        <span class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><line x1="8" y1="3" x2="8" y2="7"></line><line x1="16" y1="3" x2="16" y2="7"></line></svg>
+        </span>
+        <span class="link-text">
+          <p class="link-title">Schedule</p>
+          <p class="link-sub">Patient &ndash; Student Schedule</p>
+        </span>
+        <span class="arrow" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </span>
+      </a>
+
+      <a class="link-card" href="https://docs.google.com/forms/d/e/1FAIpQLSfsCKihOQ5Uf5benRMDo3GYTd2jANXfW1gLHBENosgthFwuGA/viewform" target="_blank" rel="noopener">
+        <span class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1Z"></path><rect x="5" y="6" width="14" height="15" rx="2"></rect><polyline points="9 13 11 15 15 11"></polyline></svg>
+        </span>
+        <span class="link-text">
+          <p class="link-title">Patient Log</p>
+          <p class="link-sub">docs.google.com/forms &middot; SRRC Patient Log</p>
+        </span>
+        <span class="arrow" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </span>
+      </a>
+
+    </nav>
+
+    <footer>SRRC &middot; <span>NEURO&#8209;OT</span> &middot; INTERNAL USE</footer>
+  </main>
+
+</body>
+</html>
