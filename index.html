@@ -34,7 +34,6 @@
     font-family:'Inter', sans-serif;
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
-    overscroll-behavior-x:none;
   }
 
   body{
@@ -129,42 +128,31 @@
     height:100%;
     max-height:420px;
   }
-   .link-card{
-     position:absolute;
-     left:50%;
-     top:50%;
-     width:clamp(188px, 58vw, 250px);
-     min-height:clamp(240px, 46vh, 300px);
-     padding:26px 20px;
-     background:var(--ink-700);
-     border:1px solid var(--ink-600);
-     border-radius:var(--radius);
-     text-decoration:none;
-     color:var(--paper);
-     display:flex;
-     flex-direction:column;
-     align-items:center;
-     justify-content:center;
-     text-align:center;
-     gap:14px;
-     will-change:transform, opacity;
-     transform:translate(-50%,-50%);
-     transition:
-       transform 380ms cubic-bezier(.2,.8,.2,1),
-       opacity 300ms ease;
-     box-shadow:0 20px 40px -20px rgba(0,0,0,.6);
-     touch-action:pan-y;
-     user-select:none;
-     -webkit-user-select:none;
-     -webkit-tap-highlight-color:transparent;
-   }
 
-   .link-card.dragging{
-     transition:none !important;
-   }
+  .link-card{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:clamp(188px, 58vw, 250px);
+    min-height:clamp(240px, 46vh, 300px);
+    padding:26px 20px;
+    background:var(--ink-700);
+    border:1px solid var(--ink-600);
+    border-radius:var(--radius);
+    text-decoration:none;
+    color:var(--paper);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    gap:14px;
+    will-change:transform, opacity;
+    transition:transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease, border-color 0.18s ease, background 0.18s ease;
+    box-shadow:0 20px 40px -20px rgba(0,0,0,0.6);
+  }
 
-   .link-card.no-anim{ transition:none !important; }
-
+  .link-card.no-anim{ transition:none; }
 
   .link-card.is-active:hover, .link-card.is-active:focus-visible{
     border-color:var(--amber);
@@ -384,83 +372,61 @@
 
   <script>
   (function(){
-    // ---------------- reliable mobile carousel ----------------
+    // ---------------- carousel ----------------
     var stage = document.getElementById('stage');
     var cards = Array.prototype.slice.call(stage.querySelectorAll('.link-card'));
     var dotsWrap = document.getElementById('dots');
     var current = 0;
 
-    cards.forEach(function(card, i){
-      var dot = document.createElement('button');
-      dot.className = 'dot';
-      dot.type = 'button';
-      dot.setAttribute('aria-label', 'Go to card ' + (i + 1));
-      dot.addEventListener('click', function(){ goTo(i); });
-      dotsWrap.appendChild(dot);
+    cards.forEach(function(_, i){
+      var d = document.createElement('button');
+      d.className = 'dot';
+      d.type = 'button';
+      d.setAttribute('aria-label', 'Go to card ' + (i + 1));
+      d.addEventListener('click', function(){ goTo(i); });
+      dotsWrap.appendChild(d);
     });
-
     var dots = Array.prototype.slice.call(dotsWrap.children);
 
     function wrap(i){
-      return ((i % cards.length) + cards.length) % cards.length;
+      var n = cards.length;
+      return ((i % n) + n) % n;
     }
 
-    function offsetFor(i){
-      var x = i - current;
-      if (x > cards.length / 2) x -= cards.length;
-      if (x < -cards.length / 2) x += cards.length;
-      return x;
-    }
-
-    function render(extraX){
-      var width = cards[0].getBoundingClientRect().width;
-      var step = width * .72;
-      extraX = extraX || 0;
-
-      cards.forEach(function(card, i){
-        var offset = offsetFor(i);
-        var x = offset * step + extraX;
-        var distance = Math.abs(x / step);
-
-        var scale = offset === 0
-          ? 1 - Math.min(distance, 1) * .16
-          : .82 + Math.max(0, 1 - distance) * .18;
-
-        var opacity = Math.max(0, 1 - distance * .55);
-
-        card.style.transform =
-          'translate(calc(-50% + ' + x + 'px), -50%) scale(' + scale + ')';
-        card.style.opacity = opacity;
-        card.style.zIndex = 100 - Math.round(distance * 10);
-        card.style.pointerEvents = distance < 1.6 ? 'auto' : 'none';
-
-        card.classList.toggle('is-active', offset === 0 && extraX === 0);
-        card.setAttribute('tabindex',
-          offset === 0 && extraX === 0 ? '0' : '-1');
+    function layout(){
+      var w = cards[0].getBoundingClientRect().width;
+      var step = w * 0.72;
+      cards.forEach(function(el, i){
+        var raw = i - current;
+        var n = cards.length;
+        // shortest wrapped offset
+        if (raw > n / 2) raw -= n;
+        if (raw < -n / 2) raw += n;
+        var abs = Math.abs(raw);
+        var scale, opacity, z, active = false;
+        if (abs === 0){ scale = 1; opacity = 1; z = 50; active = true; }
+        else if (abs === 1){ scale = 0.82; opacity = 0.42; z = 30; }
+        else if (abs === 2){ scale = 0.68; opacity = 0.14; z = 10; }
+        else { scale = 0.6; opacity = 0; z = 0; }
+        el.style.transform = 'translate(-50%,-50%) translateX(' + (raw * step) + 'px) scale(' + scale + ')';
+        el.style.opacity = opacity;
+        el.style.zIndex = z;
+        el.style.pointerEvents = (abs <= 2) ? 'auto' : 'none';
+        el.classList.toggle('is-active', active);
+        el.setAttribute('tabindex', active ? '0' : '-1');
       });
-
-      dots.forEach(function(dot, i){
-        dot.classList.toggle('is-active', i === current);
-      });
+      dots.forEach(function(d, i){ d.classList.toggle('is-active', i === current); });
     }
 
-    function goTo(index){
-      current = wrap(index);
-      cards.forEach(function(card){ card.classList.remove('dragging'); });
-      render(0);
+    function goTo(i){
+      current = wrap(i);
+      layout();
     }
-
     function next(){ goTo(current + 1); }
     function prev(){ goTo(current - 1); }
 
-    cards.forEach(function(card, i){
-      card.addEventListener('click', function(e){
-        if (card.dataset.swiped === '1'){
-          e.preventDefault();
-          delete card.dataset.swiped;
-          return;
-        }
-
+    cards.forEach(function(el, i){
+      el.addEventListener('click', function(e){
         if (i !== current){
           e.preventDefault();
           goTo(i);
@@ -473,119 +439,64 @@
 
     document.addEventListener('keydown', function(e){
       if (e.key === 'ArrowLeft') prev();
-      if (e.key === 'ArrowRight') next();
+      else if (e.key === 'ArrowRight') next();
     });
 
-    // Pointer events cover touch, pen and mouse with one reliable handler.
-    var pointer = {
-      id:null,
-      startX:0,
-      startY:0,
-      x:0,
-      startTime:0,
-      dragging:false
-    };
+    var touchX = null;
+    var touchY = null;
+    var touchStartedAt = 0;
 
-    stage.addEventListener('pointerdown', function(e){
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
+    stage.addEventListener('touchstart', function(e){
+      if (!e.touches.length) return;
+      touchX = e.touches[0].clientX;
+      touchY = e.touches[0].clientY;
+      touchStartedAt = Date.now();
+    }, {passive:true});
 
-      pointer.id = e.pointerId;
-      pointer.startX = e.clientX;
-      pointer.startY = e.clientY;
-      pointer.x = e.clientX;
-      pointer.startTime = performance.now();
-      pointer.dragging = false;
+    stage.addEventListener('touchend', function(e){
+      if (touchX === null || !e.changedTouches.length) return;
 
-      try { stage.setPointerCapture(e.pointerId); } catch (_) {}
-    });
+      var dx = e.changedTouches[0].clientX - touchX;
+      var dy = e.changedTouches[0].clientY - touchY;
+      var elapsed = Date.now() - touchStartedAt;
 
-    stage.addEventListener('pointermove', function(e){
-      if (e.pointerId !== pointer.id) return;
+      // Require a clearly horizontal gesture so normal vertical scrolling still works.
+      var horizontal = Math.abs(dx) > Math.abs(dy) * 1.2;
+      var distance = Math.abs(dx) > 45;
+      var fastSwipe = Math.abs(dx) > 25 && elapsed < 260;
 
-      var dx = e.clientX - pointer.startX;
-      var dy = e.clientY - pointer.startY;
-
-      if (!pointer.dragging){
-        if (Math.abs(dy) > Math.abs(dx) * 1.2 && Math.abs(dy) > 8){
-          pointer.id = null;
-          return;
-        }
-
-        if (Math.abs(dx) > 7){
-          pointer.dragging = true;
-          cards.forEach(function(card){ card.classList.add('dragging'); });
-        }
+      if (horizontal && (distance || fastSwipe)){
+        dx < 0 ? next() : prev();
       }
 
-      if (!pointer.dragging) return;
+      touchX = null;
+      touchY = null;
+    }, {passive:true});
 
-      pointer.x = e.clientX;
-      render(dx);
-    });
-
-    function finishPointer(e){
-      if (e.pointerId !== pointer.id) return;
-
-      var dx = e.clientX - pointer.startX;
-      var elapsed = Math.max(1, performance.now() - pointer.startTime);
-      var velocity = dx / elapsed;
-      var width = cards[0].getBoundingClientRect().width;
-
-      if (pointer.dragging){
-        cards.forEach(function(card){ card.classList.remove('dragging'); });
-
-        // Distance OR a quick flick advances the carousel.
-        if (Math.abs(dx) > width * .22 || Math.abs(velocity) > .45){
-          cards.forEach(function(card){ card.dataset.swiped = '1'; });
-          dx < 0 ? next() : prev();
-        } else {
-          render(0);
-        }
-      }
-
-      pointer.id = null;
-      pointer.dragging = false;
-    }
-
-    stage.addEventListener('pointerup', finishPointer);
-    stage.addEventListener('pointercancel', finishPointer);
-
-    window.addEventListener('resize', function(){
-      cards.forEach(function(card){ card.classList.add('no-anim'); });
-      render(0);
-      requestAnimationFrame(function(){
-        cards.forEach(function(card){ card.classList.remove('no-anim'); });
-      });
-    });
-
-    cards.forEach(function(card){ card.classList.add('no-anim'); });
-    render(0);
-
+    window.addEventListener('resize', layout);
+    cards.forEach(function(el){ el.classList.add('no-anim'); });
+    layout();
     requestAnimationFrame(function(){
       requestAnimationFrame(function(){
-        cards.forEach(function(card){ card.classList.remove('no-anim'); });
+        cards.forEach(function(el){ el.classList.remove('no-anim'); });
       });
     });
 
-    // ---------------- smooth neuron network background ----------------
+    // ---------------- neuron network background ----------------
     var canvas = document.getElementById('net');
-    var ctx = canvas.getContext('2d', {alpha:true});
+    var ctx = canvas.getContext('2d');
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var W, H, DPR;
     var nodes = [], edges = [], pulses = [];
-    var lastTime = 0;
-    var pulseTimer = 0;
 
     function resize(){
       DPR = Math.min(window.devicePixelRatio || 1, 2);
       W = window.innerWidth;
       H = window.innerHeight;
-
       canvas.width = W * DPR;
       canvas.height = H * DPR;
       canvas.style.width = W + 'px';
       canvas.style.height = H + 'px';
-
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       buildNetwork();
     }
@@ -593,38 +504,36 @@
     function buildNetwork(){
       var count = Math.max(26, Math.min(64, Math.floor((W * H) / 26000)));
       nodes = [];
-
       for (var i = 0; i < count; i++){
         nodes.push({
-          x:Math.random() * W,
-          y:Math.random() * H,
-
-          // Deliberately slow movement: the network should feel alive,
-          // not like particles flying around.
-          // Position is generated once and remains fixed.
-          phase:Math.random() * Math.PI * 2
+          x: Math.random() * W,
+          y: Math.random() * H,
+          vx: (Math.random() - 0.5) * 0.9,
+          vy: (Math.random() - 0.5) * 0.9
         });
       }
-
       rebuildEdges();
     }
 
     function rebuildEdges(){
       edges = [];
       var maxDist = Math.max(W, H) * 0.16;
+      for (var i = 0; i < nodes.length; i++){
+        var dists = [];
+        for (var j = 0; j < nodes.length; j++){
+          if (i === j) continue;
+          var dx = nodes[i].x - nodes[j].x;
+          var dy = nodes[i].y - nodes[j].y;
+          var d = Math.sqrt(dx * dx + dy * dy);
+          if (d < maxDist) dists.push({ j: j, d: d });
         }
-
-        dists.sort(function(a,b){ return a.d - b.d; });
-
+        dists.sort(function(a, b){ return a.d - b.d; });
         var k = Math.min(3, dists.length);
-
         for (var m = 0; m < k; m++){
-          var a = i;
-          var b = dists[m].j;
+          var a = i, b = dists[m].j;
           var key = a < b ? a + '-' + b : b + '-' + a;
-
           if (!edges.some(function(e){ return e.key === key; })){
-            edges.push({key:key, a:a, b:b});
+            edges.push({ key: key, a: a, b: b });
           }
         }
       }
@@ -632,56 +541,32 @@
 
     function spawnPulse(){
       if (!edges.length) return;
-
       var e = edges[Math.floor(Math.random() * edges.length)];
       var forward = Math.random() < 0.5;
-
       pulses.push({
-        a:forward ? e.a : e.b,
-        b:forward ? e.b : e.a,
-        t:0,
-        speed:0.00070 + Math.random() * 0.00035
+        a: forward ? e.a : e.b,
+        b: forward ? e.b : e.a,
+        t: 0,
+        speed: 0.018 + Math.random() * 0.022
       });
     }
 
-    function update(delta){
-      delta = Math.min(delta, 50);
+    var frame = 0;
+    var lastEdgeBuild = 0;
+    var lastPulse = 0;
 
-      // The neuron network is intentionally STATIC.
-      // Only the impulses travelling through the connections are animated.
-      for (var p = pulses.length - 1; p >= 0; p--){
-        pulses[p].t += pulses[p].speed * delta;
-
-        if (pulses[p].t >= 1){
-          pulses.splice(p, 1);
-        }
-      }
-
-      pulseTimer += delta;
-
-      if (pulseTimer > 520){
-        spawnPulse();
-        pulseTimer = 0;
-      }
-    }
-
-    function draw(){
+    function draw(now){
+      now = now || performance.now();
       ctx.clearRect(0, 0, W, H);
 
       // edges
       ctx.lineWidth = 1;
-
       for (var i = 0; i < edges.length; i++){
-        var e = edges[i];
-        var n1 = nodes[e.a];
-        var n2 = nodes[e.b];
-
-        var dx = n1.x - n2.x;
-        var dy = n1.y - n2.y;
+        var e = edges[i], n1 = nodes[e.a], n2 = nodes[e.b];
+        var dx = n1.x - n2.x, dy = n1.y - n2.y;
         var d = Math.sqrt(dx * dx + dy * dy);
         var maxDist = Math.max(W, H) * 0.16;
-        var op = Math.max(0, 1 - d / maxDist) * 0.15;
-
+        var op = Math.max(0, 1 - d / maxDist) * 0.16;
         ctx.strokeStyle = 'rgba(255,255,255,' + op + ')';
         ctx.beginPath();
         ctx.moveTo(n1.x, n1.y);
@@ -692,63 +577,72 @@
       // nodes
       for (var i2 = 0; i2 < nodes.length; i2++){
         var n = nodes[i2];
-
         ctx.beginPath();
-        ctx.arc(n.x, n.y, 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.38)';
+        ctx.arc(n.x, n.y, 1.6, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
         ctx.fill();
       }
 
-      // travelling neural impulses
-      for (var p = 0; p < pulses.length; p++){
+      // pulses (impulses)
+      for (var p = pulses.length - 1; p >= 0; p--){
         var pu = pulses[p];
-        var na = nodes[pu.a];
-        var nb = nodes[pu.b];
-
-        if (!na || !nb) continue;
-
+        pu.t += pu.speed;
+        if (pu.t >= 1){ pulses.splice(p, 1); continue; }
+        var na = nodes[pu.a], nb = nodes[pu.b];
+        if (!na || !nb) { pulses.splice(p, 1); continue; }
         var x = na.x + (nb.x - na.x) * pu.t;
         var y = na.y + (nb.y - na.y) * pu.t;
         var fade = Math.sin(pu.t * Math.PI);
-
         ctx.beginPath();
-        ctx.arc(x, y, 2.3, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(242,96,12,' + (0.95 * fade) + ')';
-        ctx.shadowColor = 'rgba(242,96,12,0.85)';
-        ctx.shadowBlur = 7 * fade;
+        ctx.arc(x, y, 2.4, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(242,96,12,' + (0.85 * fade) + ')';
+        ctx.shadowColor = 'rgba(242,96,12,0.9)';
+        ctx.shadowBlur = 8 * fade;
         ctx.fill();
         ctx.shadowBlur = 0;
       }
-    }
-
-    function animate(now){
-      if (!lastTime) lastTime = now;
-
-      var delta = now - lastTime;
-      lastTime = now;
 
       if (!reduceMotion){
-        update(delta);
-      }
+        for (var k = 0; k < nodes.length; k++){
+          var nd = nodes[k];
+          nd.x += nd.vx;
+          nd.y += nd.vy;
+          if (nd.x < 0 || nd.x > W) nd.vx *= -1;
+          if (nd.y < 0 || nd.y > H) nd.vy *= -1;
+        }
+        frame++;
 
-      draw();
+        // Keep the network topology stable for longer so it does not appear
+        // to "jump" once per second.
+        if (now - lastEdgeBuild > 4000){
+          rebuildEdges();
+          lastEdgeBuild = now;
+        }
 
-      if (!reduceMotion){
-        requestAnimationFrame(animate);
+        // Use elapsed time rather than frame-count randomness for smoother,
+        // more consistent pulse activity across different phone refresh rates.
+        if (now - lastPulse > 500){
+          spawnPulse();
+          lastPulse = now;
+        }
+
+        requestAnimationFrame(draw);
       }
     }
 
     resize();
     window.addEventListener('resize', resize);
+    lastEdgeBuild = performance.now();
+    lastPulse = performance.now();
 
     if (reduceMotion){
+      // static network, occasional gentle pulse, no drift
       draw();
+      setInterval(function(){ spawnPulse(); draw(); }, 2200);
     } else {
-      // Start with several pulses so the background is alive immediately.
-      for (var s = 0; s < 3; s++) spawnPulse();
-      requestAnimationFrame(animate);
+      for (var s = 0; s < 4; s++) spawnPulse();
+      draw();
     }
-
   })();
   </script>
 
