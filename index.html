@@ -148,22 +148,19 @@
      text-align:center;
      gap:14px;
      will-change:transform, opacity;
-     transform:translate3d(-50%,-50%,0);
+     transform:translate(-50%,-50%);
      transition:
-       transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
-       opacity 360ms ease,
-       border-color 180ms ease,
-       background 180ms ease;
-     box-shadow:0 20px 40px -20px rgba(0,0,0,0.6);
+       transform 380ms cubic-bezier(.2,.8,.2,1),
+       opacity 300ms ease;
+     box-shadow:0 20px 40px -20px rgba(0,0,0,.6);
      touch-action:pan-y;
      user-select:none;
      -webkit-user-select:none;
      -webkit-tap-highlight-color:transparent;
    }
 
-   .link-card.is-dragging{
+   .link-card.dragging{
      transition:none !important;
-     cursor:grabbing;
    }
 
    .link-card.no-anim{ transition:none !important; }
@@ -387,113 +384,80 @@
 
   <script>
   (function(){
-    // ---------------- mobile-first carousel ----------------
+    // ---------------- reliable mobile carousel ----------------
     var stage = document.getElementById('stage');
     var cards = Array.prototype.slice.call(stage.querySelectorAll('.link-card'));
     var dotsWrap = document.getElementById('dots');
     var current = 0;
 
-    var drag = {
-      active:false,
-      startX:0,
-      startY:0,
-      lastX:0,
-      lastTime:0,
-      velocity:0,
-      moved:false
-    };
-
-    cards.forEach(function(_, i){
-      var d = document.createElement('button');
-      d.className = 'dot';
-      d.type = 'button';
-      d.setAttribute('aria-label', 'Go to card ' + (i + 1));
-      d.addEventListener('click', function(){ goTo(i); });
-      dotsWrap.appendChild(d);
+    cards.forEach(function(card, i){
+      var dot = document.createElement('button');
+      dot.className = 'dot';
+      dot.type = 'button';
+      dot.setAttribute('aria-label', 'Go to card ' + (i + 1));
+      dot.addEventListener('click', function(){ goTo(i); });
+      dotsWrap.appendChild(dot);
     });
 
     var dots = Array.prototype.slice.call(dotsWrap.children);
 
     function wrap(i){
-      var n = cards.length;
-      return ((i % n) + n) % n;
+      return ((i % cards.length) + cards.length) % cards.length;
     }
 
-    function shortestOffset(index){
-      var raw = index - current;
-      var n = cards.length;
-      if (raw > n / 2) raw -= n;
-      if (raw < -n / 2) raw += n;
-      return raw;
+    function offsetFor(i){
+      var x = i - current;
+      if (x > cards.length / 2) x -= cards.length;
+      if (x < -cards.length / 2) x += cards.length;
+      return x;
     }
 
-    function render(dragX){
-      var w = cards[0].getBoundingClientRect().width;
-      var step = w * 0.72;
+    function render(extraX){
+      var width = cards[0].getBoundingClientRect().width;
+      var step = width * .72;
+      extraX = extraX || 0;
 
-      // During a drag, the whole carousel is translated by dragX.
-      cards.forEach(function(el, i){
-        var raw = shortestOffset(i);
-        var visualX = raw * step + (dragX || 0);
+      cards.forEach(function(card, i){
+        var offset = offsetFor(i);
+        var x = offset * step + extraX;
+        var distance = Math.abs(x / step);
 
-        // Make neighbouring cards participate in the swipe instead of
-        // simply waiting for the current card to change.
-        var progress = Math.min(1, Math.abs(visualX) / step);
-        var scale;
+        var scale = offset === 0
+          ? 1 - Math.min(distance, 1) * .16
+          : .82 + Math.max(0, 1 - distance) * .18;
 
-        if (raw === 0) {
-          scale = 1 - progress * 0.18;
-        } else {
-          scale = 0.82 + (1 - progress) * 0.18;
-        }
+        var opacity = Math.max(0, 1 - distance * .55);
 
-        var opacity = 1 - Math.min(0.78, Math.abs(visualX) / (step * 1.55));
-        var z = 50 - Math.round(Math.abs(visualX / step) * 10);
+        card.style.transform =
+          'translate(calc(-50% + ' + x + 'px), -50%) scale(' + scale + ')';
+        card.style.opacity = opacity;
+        card.style.zIndex = 100 - Math.round(distance * 10);
+        card.style.pointerEvents = distance < 1.6 ? 'auto' : 'none';
 
-        if (raw === 0 && Math.abs(dragX || 0) < step * 0.35) {
-          opacity = 1;
-          z = 50;
-        }
-
-        el.style.transform =
-          'translate3d(calc(-50% + ' + visualX + 'px), -50%, 0) scale(' +
-          scale.toFixed(4) + ')';
-
-        el.style.opacity = Math.max(0, opacity);
-        el.style.zIndex = z;
-        el.style.pointerEvents = (Math.abs(visualX) < step * 1.5) ? 'auto' : 'none';
-
-        var active = raw === 0 && !drag.active;
-        el.classList.toggle('is-active', active);
-        el.setAttribute('tabindex', active ? '0' : '-1');
+        card.classList.toggle('is-active', offset === 0 && extraX === 0);
+        card.setAttribute('tabindex',
+          offset === 0 && extraX === 0 ? '0' : '-1');
       });
 
-      dots.forEach(function(d, i){
-        d.classList.toggle('is-active', i === current);
+      dots.forEach(function(dot, i){
+        dot.classList.toggle('is-active', i === current);
       });
     }
 
-    function layout(){
-      render(0);
-    }
-
-    function goTo(i){
-      current = wrap(i);
-      cards.forEach(function(card){
-        card.classList.remove('is-dragging');
-      });
-      drag.active = false;
+    function goTo(index){
+      current = wrap(index);
+      cards.forEach(function(card){ card.classList.remove('dragging'); });
       render(0);
     }
 
     function next(){ goTo(current + 1); }
     function prev(){ goTo(current - 1); }
 
-    cards.forEach(function(el, i){
-      el.addEventListener('click', function(e){
-        if (drag.moved){
+    cards.forEach(function(card, i){
+      card.addEventListener('click', function(e){
+        if (card.dataset.swiped === '1'){
           e.preventDefault();
-          drag.moved = false;
+          delete card.dataset.swiped;
           return;
         }
 
@@ -509,102 +473,97 @@
 
     document.addEventListener('keydown', function(e){
       if (e.key === 'ArrowLeft') prev();
-      else if (e.key === 'ArrowRight') next();
+      if (e.key === 'ArrowRight') next();
     });
 
-    // Direct-manipulation swipe: the cards follow the finger in real time.
-    stage.addEventListener('touchstart', function(e){
-      if (!e.touches.length) return;
+    // Pointer events cover touch, pen and mouse with one reliable handler.
+    var pointer = {
+      id:null,
+      startX:0,
+      startY:0,
+      x:0,
+      startTime:0,
+      dragging:false
+    };
 
-      var t = e.touches[0];
-      drag.active = true;
-      drag.startX = t.clientX;
-      drag.startY = t.clientY;
-      drag.lastX = t.clientX;
-      drag.lastTime = performance.now();
-      drag.velocity = 0;
-      drag.moved = false;
+    stage.addEventListener('pointerdown', function(e){
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
 
-      cards.forEach(function(card){
-        card.classList.add('is-dragging');
-      });
-    }, {passive:true});
+      pointer.id = e.pointerId;
+      pointer.startX = e.clientX;
+      pointer.startY = e.clientY;
+      pointer.x = e.clientX;
+      pointer.startTime = performance.now();
+      pointer.dragging = false;
 
-    stage.addEventListener('touchmove', function(e){
-      if (!drag.active || !e.touches.length) return;
+      try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+    });
 
-      var t = e.touches[0];
-      var now = performance.now();
-      var dx = t.clientX - drag.startX;
-      var dy = t.clientY - drag.startY;
+    stage.addEventListener('pointermove', function(e){
+      if (e.pointerId !== pointer.id) return;
 
-      // If the gesture is primarily vertical, give it back to the page.
-      if (!drag.moved && Math.abs(dy) > Math.abs(dx) * 1.15){
-        drag.active = false;
-        cards.forEach(function(card){ card.classList.remove('is-dragging'); });
-        return;
+      var dx = e.clientX - pointer.startX;
+      var dy = e.clientY - pointer.startY;
+
+      if (!pointer.dragging){
+        if (Math.abs(dy) > Math.abs(dx) * 1.2 && Math.abs(dy) > 8){
+          pointer.id = null;
+          return;
+        }
+
+        if (Math.abs(dx) > 7){
+          pointer.dragging = true;
+          cards.forEach(function(card){ card.classList.add('dragging'); });
+        }
       }
 
-      if (Math.abs(dx) > 8) drag.moved = true;
+      if (!pointer.dragging) return;
 
-      var dt = Math.max(1, now - drag.lastTime);
-      drag.velocity = (t.clientX - drag.lastX) / dt;
-      drag.lastX = t.clientX;
-      drag.lastTime = now;
+      pointer.x = e.clientX;
+      render(dx);
+    });
 
-      var w = cards[0].getBoundingClientRect().width;
-      var maxDrag = w * 0.92;
-      var damped = Math.max(-maxDrag, Math.min(maxDrag, dx));
+    function finishPointer(e){
+      if (e.pointerId !== pointer.id) return;
 
-      render(damped);
-    }, {passive:true});
+      var dx = e.clientX - pointer.startX;
+      var elapsed = Math.max(1, performance.now() - pointer.startTime);
+      var velocity = dx / elapsed;
+      var width = cards[0].getBoundingClientRect().width;
 
-    stage.addEventListener('touchend', function(){
-      if (!drag.active) return;
+      if (pointer.dragging){
+        cards.forEach(function(card){ card.classList.remove('dragging'); });
 
-      var dx = drag.lastX - drag.startX;
-      var w = cards[0].getBoundingClientRect().width;
-      var threshold = Math.max(45, w * 0.20);
-
-      // Velocity makes quick flicks work even when the distance is short.
-      var shouldAdvance = Math.abs(dx) > threshold || Math.abs(drag.velocity) > 0.45;
-
-      cards.forEach(function(card){
-        card.classList.remove('is-dragging');
-      });
-
-      if (shouldAdvance){
-        dx < 0 ? next() : prev();
-      } else {
-        // Smoothly return to the original position.
-        drag.active = false;
-        render(0);
+        // Distance OR a quick flick advances the carousel.
+        if (Math.abs(dx) > width * .22 || Math.abs(velocity) > .45){
+          cards.forEach(function(card){ card.dataset.swiped = '1'; });
+          dx < 0 ? next() : prev();
+        } else {
+          render(0);
+        }
       }
 
-      window.setTimeout(function(){
-        drag.moved = false;
-      }, 40);
-    }, {passive:true});
+      pointer.id = null;
+      pointer.dragging = false;
+    }
 
-    stage.addEventListener('touchcancel', function(){
-      if (!drag.active) return;
+    stage.addEventListener('pointerup', finishPointer);
+    stage.addEventListener('pointercancel', finishPointer);
 
-      drag.active = false;
-      cards.forEach(function(card){
-        card.classList.remove('is-dragging');
-      });
+    window.addEventListener('resize', function(){
+      cards.forEach(function(card){ card.classList.add('no-anim'); });
       render(0);
-      drag.moved = false;
-    }, {passive:true});
+      requestAnimationFrame(function(){
+        cards.forEach(function(card){ card.classList.remove('no-anim'); });
+      });
+    });
 
-    window.addEventListener('resize', layout);
-
-    cards.forEach(function(el){ el.classList.add('no-anim'); });
-    layout();
+    cards.forEach(function(card){ card.classList.add('no-anim'); });
+    render(0);
 
     requestAnimationFrame(function(){
       requestAnimationFrame(function(){
-        cards.forEach(function(el){ el.classList.remove('no-anim'); });
+        cards.forEach(function(card){ card.classList.remove('no-anim'); });
       });
     });
 
@@ -615,7 +574,6 @@
     var W, H, DPR;
     var nodes = [], edges = [], pulses = [];
     var lastTime = 0;
-    var edgeRefresh = 0;
     var pulseTimer = 0;
 
     function resize(){
@@ -630,7 +588,6 @@
 
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       buildNetwork();
-      edgeRefresh = 0;
     }
 
     function buildNetwork(){
@@ -644,11 +601,8 @@
 
           // Deliberately slow movement: the network should feel alive,
           // not like particles flying around.
-          vx:(Math.random() - 0.5) * 0.18,
-          vy:(Math.random() - 0.5) * 0.18,
-
-          phase:Math.random() * Math.PI * 2,
-          drift:0.10 + Math.random() * 0.10
+          // Position is generated once and remains fixed.
+          phase:Math.random() * Math.PI * 2
         });
       }
 
@@ -658,20 +612,6 @@
     function rebuildEdges(){
       edges = [];
       var maxDist = Math.max(W, H) * 0.16;
-
-      for (var i = 0; i < nodes.length; i++){
-        var dists = [];
-
-        for (var j = 0; j < nodes.length; j++){
-          if (i === j) continue;
-
-          var dx = nodes[i].x - nodes[j].x;
-          var dy = nodes[i].y - nodes[j].y;
-          var d = Math.sqrt(dx * dx + dy * dy);
-
-          if (d < maxDist){
-            dists.push({j:j, d:d});
-          }
         }
 
         dists.sort(function(a,b){ return a.d - b.d; });
@@ -700,34 +640,15 @@
         a:forward ? e.a : e.b,
         b:forward ? e.b : e.a,
         t:0,
-        speed:0.00045 + Math.random() * 0.00035
+        speed:0.00070 + Math.random() * 0.00035
       });
     }
 
     function update(delta){
-      // Clamp huge jumps after tab switching/backgrounding.
-      delta = Math.min(delta, 40);
+      delta = Math.min(delta, 50);
 
-      var seconds = delta / 1000;
-
-      for (var i = 0; i < nodes.length; i++){
-        var n = nodes[i];
-
-        n.phase += seconds * n.drift;
-
-        // Tiny organic side-to-side movement prevents the network from
-        // looking mechanically linear.
-        n.x += (n.vx + Math.sin(n.phase) * 0.035) * delta;
-        n.y += (n.vy + Math.cos(n.phase * 0.83) * 0.035) * delta;
-
-        var margin = 20;
-
-        if (n.x < -margin) n.x = W + margin;
-        if (n.x > W + margin) n.x = -margin;
-        if (n.y < -margin) n.y = H + margin;
-        if (n.y > H + margin) n.y = -margin;
-      }
-
+      // The neuron network is intentionally STATIC.
+      // Only the impulses travelling through the connections are animated.
       for (var p = pulses.length - 1; p >= 0; p--){
         pulses[p].t += pulses[p].speed * delta;
 
@@ -736,16 +657,9 @@
         }
       }
 
-      // Very occasional topology refresh. This is intentionally much slower
-      // than the animation itself, eliminating the visible 1-second jump.
-      edgeRefresh += delta;
-      if (edgeRefresh > 6500){
-        rebuildEdges();
-        edgeRefresh = 0;
-      }
-
       pulseTimer += delta;
-      if (pulseTimer > 650){
+
+      if (pulseTimer > 520){
         spawnPulse();
         pulseTimer = 0;
       }
@@ -766,7 +680,7 @@
         var dy = n1.y - n2.y;
         var d = Math.sqrt(dx * dx + dy * dy);
         var maxDist = Math.max(W, H) * 0.16;
-        var op = Math.max(0, 1 - d / maxDist) * 0.13;
+        var op = Math.max(0, 1 - d / maxDist) * 0.15;
 
         ctx.strokeStyle = 'rgba(255,255,255,' + op + ')';
         ctx.beginPath();
@@ -781,7 +695,7 @@
 
         ctx.beginPath();
         ctx.arc(n.x, n.y, 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.30)';
+        ctx.fillStyle = 'rgba(255,255,255,0.38)';
         ctx.fill();
       }
 
@@ -799,7 +713,7 @@
 
         ctx.beginPath();
         ctx.arc(x, y, 2.3, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(242,96,12,' + (0.82 * fade) + ')';
+        ctx.fillStyle = 'rgba(242,96,12,' + (0.95 * fade) + ')';
         ctx.shadowColor = 'rgba(242,96,12,0.85)';
         ctx.shadowBlur = 7 * fade;
         ctx.fill();
