@@ -443,12 +443,34 @@
     });
 
     var touchX = null;
-    stage.addEventListener('touchstart', function(e){ touchX = e.touches[0].clientX; }, {passive:true});
+    var touchY = null;
+    var touchStartedAt = 0;
+
+    stage.addEventListener('touchstart', function(e){
+      if (!e.touches.length) return;
+      touchX = e.touches[0].clientX;
+      touchY = e.touches[0].clientY;
+      touchStartedAt = Date.now();
+    }, {passive:true});
+
     stage.addEventListener('touchend', function(e){
-      if (touchX === null) return;
+      if (touchX === null || !e.changedTouches.length) return;
+
       var dx = e.changedTouches[0].clientX - touchX;
-      if (Math.abs(dx) > 40){ dx < 0 ? next() : prev(); }
+      var dy = e.changedTouches[0].clientY - touchY;
+      var elapsed = Date.now() - touchStartedAt;
+
+      // Require a clearly horizontal gesture so normal vertical scrolling still works.
+      var horizontal = Math.abs(dx) > Math.abs(dy) * 1.2;
+      var distance = Math.abs(dx) > 45;
+      var fastSwipe = Math.abs(dx) > 25 && elapsed < 260;
+
+      if (horizontal && (distance || fastSwipe)){
+        dx < 0 ? next() : prev();
+      }
+
       touchX = null;
+      touchY = null;
     }, {passive:true});
 
     window.addEventListener('resize', layout);
@@ -530,7 +552,11 @@
     }
 
     var frame = 0;
-    function draw(){
+    var lastEdgeBuild = 0;
+    var lastPulse = 0;
+
+    function draw(now){
+      now = now || performance.now();
       ctx.clearRect(0, 0, W, H);
 
       // edges
@@ -585,14 +611,29 @@
           if (nd.y < 0 || nd.y > H) nd.vy *= -1;
         }
         frame++;
-        if (frame % 90 === 0) rebuildEdges();
-        if (Math.random() < 0.16) spawnPulse();
+
+        // Keep the network topology stable for longer so it does not appear
+        // to "jump" once per second.
+        if (now - lastEdgeBuild > 4000){
+          rebuildEdges();
+          lastEdgeBuild = now;
+        }
+
+        // Use elapsed time rather than frame-count randomness for smoother,
+        // more consistent pulse activity across different phone refresh rates.
+        if (now - lastPulse > 500){
+          spawnPulse();
+          lastPulse = now;
+        }
+
         requestAnimationFrame(draw);
       }
     }
 
     resize();
     window.addEventListener('resize', resize);
+    lastEdgeBuild = performance.now();
+    lastPulse = performance.now();
 
     if (reduceMotion){
       // static network, occasional gentle pulse, no drift
