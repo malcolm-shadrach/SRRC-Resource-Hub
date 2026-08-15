@@ -42,7 +42,7 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-    padding:40px 20px 22px;
+    padding:28px 16px 16px;
     position:relative;
   }
 
@@ -70,41 +70,44 @@
 
   .eyebrow{
     font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
-    letter-spacing:0.14em;
+    font-size:10.5px;
+    letter-spacing:0.13em;
     text-transform:uppercase;
     color:var(--mint);
-    margin-bottom:16px;
+    text-align:center;
+    margin-bottom:12px;
     opacity:0.9;
   }
 
   .mark{
-    width:52px;
-    height:52px;
-    margin-bottom:14px;
+    width:38px;
+    height:38px;
+    margin-bottom:10px;
+  }
+
+  .tagline{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:500;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    text-align:center;
+    color:var(--amber);
+    margin:0 0 4px;
+    max-width:300px;
   }
 
   h1{
     font-family:'Fraunces', serif;
     font-optical-sizing:auto;
     font-weight:600;
-    font-size:clamp(23px, 5.4vw, 30px);
-    line-height:1.15;
+    font-size:clamp(20px, 6vw, 27px);
+    line-height:1.16;
     text-align:center;
     letter-spacing:0.01em;
-    margin:0 0 8px;
+    margin:0 0 10px;
     color:var(--paper);
-  }
-
-  .tagline{
-    font-family:'Fraunces', serif;
-    font-style:italic;
-    font-weight:400;
-    font-size:15px;
-    text-align:center;
-    color:var(--paper-dim);
-    margin:0 0 8px;
-    max-width:340px;
+    max-width:320px;
   }
 
   /* ---------- carousel ---------- */
@@ -123,15 +126,16 @@
     position:relative;
     width:100%;
     height:100%;
-    max-height:280px;
+    max-height:420px;
   }
 
   .link-card{
     position:absolute;
     left:50%;
     top:50%;
-    width:min(320px, 78vw);
-    padding:24px 24px;
+    width:clamp(188px, 58vw, 250px);
+    min-height:clamp(240px, 46vh, 300px);
+    padding:26px 20px;
     background:var(--ink-700);
     border:1px solid var(--ink-600);
     border-radius:var(--radius);
@@ -139,12 +143,16 @@
     color:var(--paper);
     display:flex;
     flex-direction:column;
-    align-items:flex-start;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
     gap:14px;
     will-change:transform, opacity;
-    transition:border-color 0.18s ease, background 0.18s ease;
+    transition:transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease, border-color 0.18s ease, background 0.18s ease;
     box-shadow:0 20px 40px -20px rgba(0,0,0,0.6);
   }
+
+  .link-card.no-anim{ transition:none; }
 
   .link-card.is-active:hover, .link-card.is-active:focus-visible{
     border-color:var(--amber);
@@ -286,8 +294,8 @@
       <path d="M50 62 C60 66 70 66 76 78" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
     </svg>
 
-    <h1>Neuro-Occupational Therapy Unit</h1>
     <p class="tagline">Sahaya Sri Ramachandra Rehabilitation Centre</p>
+    <h1>Neuro-Occupational Therapy Unit</h1>
 
     <div class="carousel">
       <button class="nav-btn nav-prev" type="button" aria-label="Previous card">
@@ -444,7 +452,13 @@
     }, {passive:true});
 
     window.addEventListener('resize', layout);
+    cards.forEach(function(el){ el.classList.add('no-anim'); });
     layout();
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        cards.forEach(function(el){ el.classList.remove('no-anim'); });
+      });
+    });
 
     // ---------------- neuron network background ----------------
     var canvas = document.getElementById('net');
@@ -472,8 +486,8 @@
         nodes.push({
           x: Math.random() * W,
           y: Math.random() * H,
-          vx: (Math.random() - 0.5) * 0.12,
-          vy: (Math.random() - 0.5) * 0.12
+          vx: (Math.random() - 0.5) * 0.9,
+          vy: (Math.random() - 0.5) * 0.9
         });
       }
       rebuildEdges();
@@ -511,7 +525,7 @@
         a: forward ? e.a : e.b,
         b: forward ? e.b : e.a,
         t: 0,
-        speed: 0.006 + Math.random() * 0.008
+        speed: 0.018 + Math.random() * 0.022
       });
     }
 
@@ -571,8 +585,8 @@
           if (nd.y < 0 || nd.y > H) nd.vy *= -1;
         }
         frame++;
-        if (frame % 240 === 0) rebuildEdges();
-        if (Math.random() < 0.05) spawnPulse();
+        if (frame % 90 === 0) rebuildEdges();
+        if (Math.random() < 0.16) spawnPulse();
         requestAnimationFrame(draw);
       }
     }
