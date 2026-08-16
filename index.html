@@ -8,7 +8,7 @@
 <meta name="description" content="Link hub for the Neuro-Occupational Therapy Unit, Sahaya Sri Ramachandra Rehabilitation Centre.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Science+Gothic:wght@400;500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink-900:#000000;
@@ -21,6 +21,33 @@
     --amber-dim:#C94E09;
     --mint:#FFFFFF;
     --radius:14px;
+
+    /* Easy-to-tune coordinate offsets for the hero text block */
+    --hero-x:0px;
+    --hero-y:0px;
+    --mark-x:0px;
+    --mark-y:-100px;
+    --eyebrow-x:0px;
+    --eyebrow-y:550px;
+    --tagline-x:0px;
+    --tagline-y:-100px;
+    --heading-x:0px;
+    --heading-y:-100px;
+    --hero-gap:0px;
+
+    /* Easy-to-tune coordinate offsets for the carousel and arrows */
+    --carousel-x:0px;
+    --carousel-y:-60px;
+    --carousel-stage-x:0px;
+    --carousel-stage-y:0px;
+    --nav-prev-x:0px;
+    --nav-prev-y:0px;
+    --nav-next-x:0px;
+    --nav-next-y:0px;
+    --dots-x:0px;
+    --dots-y:-40px;
+    --dot-x:0px;
+    --dot-y:0px;
   }
 
   *{box-sizing:border-box;}
@@ -42,7 +69,7 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-    padding:28px 16px 16px;
+    padding:12px 16px 16px;
     position:relative;
   }
 
@@ -60,12 +87,22 @@
     position:relative;
     z-index:1;
     width:100%;
-    max-width:560px;
+    max-width:500px;
     display:flex;
     flex-direction:column;
     align-items:center;
+    justify-content:center;
     flex:1 1 auto;
     min-height:0;
+  }
+
+  .hero-copy{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    transform:translate(var(--hero-x), var(--hero-y));
+    position:relative;
   }
 
   .eyebrow{
@@ -75,39 +112,43 @@
     text-transform:uppercase;
     color:var(--mint);
     text-align:center;
-    margin-bottom:12px;
+    margin:0 0 calc(4px + var(--hero-gap));
     opacity:0.9;
+    transform:translate(var(--eyebrow-x), var(--eyebrow-y));
   }
 
   .mark{
-    width:38px;
-    height:38px;
-    margin-bottom:10px;
+    width:100px;
+    height:100px;
+    margin:0 0 calc(10px + var(--hero-gap));
+    transform:translate(var(--mark-x), var(--mark-y));
   }
 
   .tagline{
     font-family:'IBM Plex Mono', monospace;
     font-weight:500;
-    font-size:10.5px;
+    font-size:9.5px;
     letter-spacing:0.08em;
     text-transform:uppercase;
     text-align:center;
     color:var(--amber);
-    margin:0 0 4px;
+    margin:0 0 calc(20px + var(--hero-gap));
     max-width:300px;
+    transform:translate(var(--tagline-x), var(--tagline-y));
   }
 
   h1{
-    font-family:'Fraunces', serif;
+    font-family:'Science Gothic', sans-serif;
     font-optical-sizing:auto;
-    font-weight:600;
-    font-size:clamp(20px, 6vw, 27px);
+    font-weight:300;
+    font-size:clamp(10px, 4vw, 14px);
     line-height:1.16;
     text-align:center;
     letter-spacing:0.01em;
-    margin:0 0 10px;
+    margin:0 0 25px;
     color:var(--paper);
-    max-width:320px;
+    max-width:360px;
+    transform:translate(var(--heading-x), var(--heading-y));
   }
 
   /* ---------- carousel ---------- */
@@ -115,26 +156,26 @@
   .carousel{
     position:relative;
     width:100%;
-    flex:1 1 auto;
-    min-height:0;
     display:flex;
     align-items:center;
     justify-content:center;
+    margin-top:6px;
+    transform:translate(var(--carousel-x), var(--carousel-y));
   }
 
   .carousel-stage{
     position:relative;
     width:100%;
-    height:100%;
-    max-height:420px;
+    height:clamp(240px, 46vh, 300px);
+    transform:translate(var(--carousel-stage-x), var(--carousel-stage-y));
   }
 
   .link-card{
     position:absolute;
     left:50%;
     top:50%;
-    width:clamp(188px, 58vw, 250px);
-    min-height:clamp(240px, 46vh, 300px);
+    width:clamp(193px, 58vw, 255px);
+    min-height:clamp(245px, 46vh, 305px);
     padding:26px 20px;
     background:var(--ink-700);
     border:1px solid var(--ink-600);
@@ -228,17 +269,26 @@
   }
   .nav-btn:hover{ border-color:var(--amber); color:var(--amber); }
   .nav-btn:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
-  .nav-prev{ left:-4px; }
-  .nav-next{ right:-4px; }
+  .nav-prev{
+    left:calc(-4px + var(--nav-prev-x));
+    top:calc(50% + var(--nav-prev-y));
+    transform:translateY(-50%);
+  }
+  .nav-next{
+    right:calc(-4px + var(--nav-next-x));
+    top:calc(50% + var(--nav-next-y));
+    transform:translateY(-50%);
+  }
   @media (min-width:600px){
-    .nav-prev{ left:-46px; }
-    .nav-next{ right:-46px; }
+    .nav-prev{ left:calc(-46px + var(--nav-prev-x)); }
+    .nav-next{ right:calc(-46px + var(--nav-next-x)); }
   }
 
   .dots{
     display:flex;
     gap:8px;
-    margin-top:6px;
+    margin-top:20px;
+    transform:translate(var(--dots-x), var(--dots-y));
   }
   .dot{
     width:7px;
@@ -249,6 +299,7 @@
     padding:0;
     cursor:pointer;
     transition:background 0.18s ease, transform 0.18s ease;
+    transform:translate(var(--dot-x), var(--dot-y));
   }
   .dot.is-active{
     background:var(--amber);
@@ -256,7 +307,7 @@
   }
 
   footer{
-    margin-top:14px;
+    margin-top:32px;
     text-align:center;
     font-family:'IBM Plex Mono', monospace;
     font-size:11px;
@@ -277,25 +328,27 @@
   <canvas id="net" aria-hidden="true"></canvas>
 
   <main>
-    <p class="eyebrow">Resource Hub &middot; Dr. Malcolm Shadrach (OT)</p>
+    <div class="hero-copy">
+      <p class="eyebrow">Resource Hub &middot; Dr. Malcolm Shadrach (OT)</p>
 
-    <svg class="mark" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M50 8 C50 22 40 24 34 34" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M50 8 C50 22 60 24 66 34" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M50 8 L50 30" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M28 20 C34 26 34 30 38 36" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
-      <path d="M72 20 C66 26 66 30 62 36" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
-      <circle cx="50" cy="40" r="9" fill="#F2600C"/>
-      <path d="M50 49 L50 62" stroke="#F2600C" stroke-width="3" stroke-linecap="round"/>
-      <path d="M50 62 C40 66 30 66 24 78" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M50 62 C44 68 40 70 36 82" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M50 62 C50 70 50 74 50 86" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M50 62 C56 68 60 70 64 82" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M50 62 C60 66 70 66 76 78" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
-    </svg>
+      <svg class="mark" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M50 8 C50 22 40 24 34 34" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M50 8 C50 22 60 24 66 34" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M50 8 L50 30" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M28 20 C34 26 34 30 38 36" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+        <path d="M72 20 C66 26 66 30 62 36" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+        <circle cx="50" cy="40" r="9" fill="#F2600C"/>
+        <path d="M50 49 L50 62" stroke="#F2600C" stroke-width="3" stroke-linecap="round"/>
+        <path d="M50 62 C40 66 30 66 24 78" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M50 62 C44 68 40 70 36 82" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M50 62 C50 70 50 74 50 86" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M50 62 C56 68 60 70 64 82" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M50 62 C60 66 70 66 76 78" stroke="#F2600C" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
 
-    <p class="tagline">Sahaya Sri Ramachandra Rehabilitation Centre</p>
-    <h1>Neuro-Occupational Therapy Unit</h1>
+      <p class="tagline">Sahaya Sri Ramachandra Rehabilitation Centre</p>
+      <h1>NEURO-OCCUPATIONAL THERAPY UNIT</h1>
+    </div>
 
     <div class="carousel">
       <button class="nav-btn nav-prev" type="button" aria-label="Previous card">
@@ -308,7 +361,7 @@
           <span class="icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><line x1="8" y1="3" x2="8" y2="7"></line><line x1="16" y1="3" x2="16" y2="7"></line></svg>
           </span>
-          <p class="link-title">Attendance Register</p>
+          <p class="link-title">ATTENDANCE REGISTER</p>
           <p class="link-desc">Check your attendance entries</p>
           <span class="link-goto">Open &rarr;</span>
         </a>
@@ -317,7 +370,7 @@
           <span class="icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><line x1="8" y1="3" x2="8" y2="7"></line><line x1="16" y1="3" x2="16" y2="7"></line></svg>
           </span>
-          <p class="link-title">Today's Schedule</p>
+          <p class="link-title">TODAY'S SCHEDULE</p>
           <p class="link-desc">See who's booked in for therapy today.</p>
           <span class="link-goto">Open &rarr;</span>
         </a>
@@ -326,7 +379,7 @@
           <span class="icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1Z"></path><rect x="5" y="6" width="14" height="15" rx="2"></rect><polyline points="9 13 11 15 15 11"></polyline></svg>
           </span>
-          <p class="link-title">Intervention Log</p>
+          <p class="link-title">INTERVENTION LOG</p>
           <p class="link-desc">Log a completed intervention session.</p>
           <span class="link-goto">Open &rarr;</span>
         </a>
@@ -335,7 +388,7 @@
           <span class="icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1Z"></path><rect x="5" y="6" width="14" height="15" rx="2"></rect><polyline points="9 13 11 15 15 11"></polyline></svg>
           </span>
-          <p class="link-title">Intervention Records</p>
+          <p class="link-title">INTERVENTION RECORDS</p>
           <p class="link-desc">Browse past intervention entries.</p>
           <span class="link-goto">Open &rarr;</span>
         </a>
@@ -344,7 +397,7 @@
           <span class="icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="1"></rect><rect x="3" y="14" width="18" height="6" rx="1"></rect><line x1="7" y1="7" x2="7" y2="7"></line><line x1="7" y1="17" x2="7" y2="17"></line></svg>
           </span>
-          <p class="link-title">Inventory Log</p>
+          <p class="link-title">INVENTORY LOG</p>
           <p class="link-desc">Check out or return therapy equipment.</p>
           <span class="link-goto">Open &rarr;</span>
         </a>
@@ -353,7 +406,7 @@
           <span class="icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="1"></rect><rect x="3" y="14" width="18" height="6" rx="1"></rect><line x1="7" y1="7" x2="7" y2="7"></line><line x1="7" y1="17" x2="7" y2="17"></line></svg>
           </span>
-          <p class="link-title">Inventory Records</p>
+          <p class="link-title">INVENTORY RECORDS</p>
           <p class="link-desc">View current equipment inventory.</p>
           <span class="link-goto">Open &rarr;</span>
         </a>
