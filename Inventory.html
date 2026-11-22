@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='14' fill='%23141414'/><text x='50' y='64' font-family='Arial Black, sans-serif' font-size='46' font-weight='900' fill='%23FF5A1F' text-anchor='middle'>OT</text></svg>">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SRRC Inventory</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #141414;
+      --black-soft: #232220;
+      --white: #ffffff;
+      --paper: #FAFAF7;
+      --orange: #FF5A1F;
+      --orange-deep: #D8460B;
+      --orange-tint: #FFE7DA;
+      --border: #E3DFD6;
+      --text: #141414;
+      --text-muted: #706C64;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--paper);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Hazard stripe — signature motif */
+    .hazard-stripe {
+      height: 7px;
+      background: repeating-linear-gradient(135deg, var(--orange) 0 14px, var(--black) 14px 28px);
+    }
+
+    /* Header */
+    header {
+      background: var(--black);
+      padding: 2.25rem 2rem 2.25rem;
+    }
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .header-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 0.6rem;
+    }
+    header h1 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 2.1rem;
+      font-weight: 400;
+      color: #ffffff;
+      line-height: 1.15;
+      text-transform: uppercase;
+      letter-spacing: 0.01em;
+    }
+    header p {
+      color: #B7B3AB;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+      margin-top: 0.6rem;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.25rem 2rem 0;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .stat-pill {
+      background: var(--white);
+      border: 1.5px solid var(--black);
+      border-radius: 3px;
+      padding: 0.4rem 1rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .stat-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-available { background: var(--black); }
+    .dot-borrowed { background: var(--orange); }
+
+    /* Main content */
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 2rem 4rem;
+    }
+
+    /* Filter row */
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+    }
+    .filter-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .filter-btn {
+      border: 1.5px solid var(--black);
+      background: var(--white);
+      border-radius: 3px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--black);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .filter-btn:hover { background: var(--black); color: var(--white); }
+    .filter-btn.active { background: var(--orange); border-color: var(--orange); color: white; }
+
+    /* Search */
+    .search-row { margin-bottom: 1.25rem; }
+    .search-row input {
+      width: 100%;
+      padding: 0.65rem 1rem;
+      border: 1.5px solid var(--black);
+      border-radius: 3px;
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--white);
+      outline: none;
+      transition: box-shadow 0.15s;
+    }
+    .search-row input:focus { box-shadow: 0 0 0 3px var(--orange-tint); border-color: var(--orange); }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.1rem;
+    }
+
+    /* Item card */
+    .item-card {
+      background: var(--white);
+      border: 1.5px solid var(--black);
+      border-radius: 4px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: transform 0.15s, box-shadow 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .item-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 4px 4px 0 var(--black);
+    }
+    .item-card.borrowed {
+      border: 1.5px dashed var(--orange);
+    }
+    .item-card.borrowed:hover { box-shadow: 4px 4px 0 var(--orange); }
+    .item-card.borrowed::after {
+      content: 'OUT';
+      position: absolute;
+      top: 12px; left: -30px;
+      background: var(--orange);
+      color: var(--white);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 3px 32px;
+      transform: rotate(-40deg);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+    .item-icon {
+      font-size: 2.2rem;
+      line-height: 1;
+      transition: opacity 0.15s, filter 0.15s;
+    }
+    .item-card.borrowed .item-icon {
+      filter: grayscale(1);
+      opacity: 0.3;
+    }
+    .item-name {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .item-category {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .item-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 2px;
+      width: fit-content;
+    }
+    .status-available {
+      background: var(--white);
+      border: 1.5px solid var(--black);
+      color: var(--black);
+    }
+    .status-borrowed {
+      background: var(--orange);
+      color: var(--white);
+      border: 1.5px solid var(--orange);
+    }
+    .borrower-info {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: auto;
+    }
+    .btn-borrow, .btn-return {
+      flex: 1;
+      padding: 0.5rem 0;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      border: 1.5px solid var(--black);
+      font-family: 'Inter', sans-serif;
+      transition: opacity 0.15s, transform 0.1s, background 0.15s;
+    }
+    .btn-borrow:active, .btn-return:active { transform: scale(0.97); }
+    .btn-borrow {
+      background: var(--black);
+      color: white;
+    }
+    .btn-borrow:hover { background: var(--orange); border-color: var(--orange); }
+    .btn-borrow:disabled {
+      background: var(--paper);
+      border-color: var(--border);
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+    .btn-return {
+      background: var(--white);
+      border: 1.5px solid var(--orange);
+      color: var(--orange);
+    }
+    .btn-return:hover { background: var(--orange); color: white; }
+    .quantity-badge {
+      position: absolute;
+      top: 0; right: 0;
+      background: var(--black);
+      color: var(--white);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 0 0 0 6px;
+    }
+
+    /* Modal overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20,20,20,0.55);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--white);
+      border-radius: 6px;
+      border: 1.5px solid var(--black);
+      padding: 2rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 8px 8px 0 var(--black);
+      position: relative;
+      animation: modalIn 0.2s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: var(--paper);
+      border: 1.5px solid var(--black);
+      border-radius: 50%;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--black);
+    }
+    .modal-close:hover { background: var(--orange); border-color: var(--orange); color: white; }
+    .modal-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .modal h2 {
+      font-family: 'Archivo Black', sans-serif;
+      font-weight: 400;
+      font-size: 1.15rem;
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+    .modal-subtitle {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.4rem;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      border: 1.5px solid var(--black);
+      border-radius: 3px;
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--paper);
+      transition: box-shadow 0.15s, border-color 0.15s;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px var(--orange-tint);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--black);
+      color: white;
+      border: 1.5px solid var(--black);
+      border-radius: 4px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-submit:hover { background: var(--orange); border-color: var(--orange); }
+
+    /* Success toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--black);
+      color: white;
+      border: 1.5px solid var(--orange);
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      z-index: 200;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.3);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* Section heading */
+    .section-heading {
+      font-family: 'Archivo Black', sans-serif;
+      font-weight: 400;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--black);
+    }
+
+    /* Log table */
+    .log-section {
+      margin-top: 3rem;
+    }
+    .log-table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+    }
+    th {
+      text-align: left;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 0.5rem 0.75rem;
+      border-bottom: 2px solid var(--black);
+    }
+    td {
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    tr:last-child td { border-bottom: none; }
+    .log-empty {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 2rem;
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+    }
+    .log-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .log-badge-borrow { background: var(--orange-tint); color: var(--orange-deep); border: 1px solid var(--orange); }
+    .log-badge-return { background: var(--white); color: var(--black); border: 1px solid var(--black); }
+
+    /* Script note */
+    .script-note {
+      background: var(--orange-tint);
+      border-left: 3px solid var(--orange);
+      border-radius: 0 6px 6px 0;
+      padding: 1rem 1.25rem;
+      font-size: 0.85rem;
+      color: var(--black);
+      margin-top: 3rem;
+      line-height: 1.6;
+    }
+    .script-note strong { font-weight: 700; }
+
+    @media (max-width: 600px) {
+      header { padding: 1.5rem 1.25rem 1.75rem; }
+      header h1 { font-size: 1.5rem; }
+      main { padding: 1.75rem 1rem 3rem; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+      .modal { padding: 1.5rem; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="hazard-stripe"></div>
+
+<header>
+  <div class="header-inner">
+    <div class="header-tag">SRRC NEURO — OCCUPATIONAL THERAPY</div>
+    <h1>Equipment Inventory</h1>
+    <p id="header-subtitle">84 items · Updated 09-07-26 | Dr. Malcolm Shadrach (OT)</p>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat-pill"><span class="stat-dot dot-available"></span><span id="count-available">—</span> available</div>
+  <div class="stat-pill"><span class="stat-dot dot-borrowed"></span><span id="count-borrowed">—</span> out</div>
+</div>
+
+<main>
+  <div class="search-row">
+    <input type="text" id="search-input" placeholder="Search items…" oninput="renderGrid()" />
+  </div>
+
+  <div class="filter-row">
+    <span class="filter-label">Filter</span>
+    <button class="filter-btn active" onclick="filterItems('all', this)">All</button>
+    <button class="filter-btn" onclick="filterItems('available', this)">Available</button>
+    <button class="filter-btn" onclick="filterItems('borrowed', this)">Out</button>
+    <button class="filter-btn" onclick="filterItems('Fine motor', this)">Fine motor</button>
+    <button class="filter-btn" onclick="filterItems('Sensory', this)">Sensory</button>
+    <button class="filter-btn" onclick="filterItems('Cognitive', this)">Cognitive</button>
+    <button class="filter-btn" onclick="filterItems('Gross motor', this)">Gross motor</button>
+    <button class="filter-btn" onclick="filterItems('ADL', this)">ADL</button>
+    <button class="filter-btn" onclick="filterItems('Assessment', this)">Assessment</button>
+  </div>
+
+  <div class="grid" id="inventory-grid"></div>
+
+  <!-- Log table -->
+  <div class="log-section">
+    <div class="section-heading">Today's borrow log</div>
+    <div class="log-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Staff name</th>
+            <th>Ward</th>
+            <th>Time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="log-body">
+          <tr><td colspan="5" class="log-empty">No activity yet today</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="script-note">
+    <strong>Google Sheets integration:</strong> Open <code>apps-script.gs</code> in Google Apps Script, deploy as a web app, and paste the URL into the <code>APPS_SCRIPT_URL</code> variable at the top of <code>index.html</code>. All borrow and return events will then be recorded automatically in your Google Sheet.
+  </div>
+</main>
+
+<!-- Borrow modal -->
+<div class="modal-overlay" id="borrow-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('borrow-modal')">✕</button>
+    <div class="modal-icon" id="borrow-icon"></div>
+    <h2 id="borrow-title">Borrow item</h2>
+    <p class="modal-subtitle" id="borrow-subtitle"></p>
+    <div class="form-group">
+      <label>Your name</label>
+      <input type="text" id="borrow-name" placeholder="e.g. Surabhi Pasupuleti" />
+    </div>
+    <div class="form-group">
+      <label>Ward</label>
+      <input type="text" id="borrow-ward" placeholder="e.g. Paed Ward" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Borrow time</label>
+        <input type="time" id="borrow-time" />
+      </div>
+      <div class="form-group">
+        <label>Expected return</label>
+        <input type="time" id="borrow-return-est" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <input type="text" id="borrow-notes" placeholder="e.g. for 2 patients" />
+    </div>
+    <button class="btn-submit" onclick="submitBorrow()">Confirm borrow</button>
+  </div>
+</div>
+
+<!-- Return modal -->
+<div class="modal-overlay" id="return-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('return-modal')">✕</button>
+    <div class="modal-icon" id="return-icon"></div>
+    <h2 id="return-title">Return item</h2>
+    <p class="modal-subtitle" id="return-subtitle"></p>
+    <div class="form-group">
+      <label>Your name</label>
+      <input type="text" id="return-name" placeholder="e.g. Dr. Priya Nair" />
+    </div>
+    <div class="form-group">
+      <label>Return time</label>
+      <input type="time" id="return-time" />
+    </div>
+    <div class="form-group">
+      <label>Condition of item</label>
+      <select id="return-condition">
+        <option value="Good">Good — no issues</option>
+        <option value="Minor wear">Minor wear</option>
+        <option value="Needs repair">Needs repair</option>
+        <option value="Missing parts">Missing parts</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <input type="text" id="return-notes" placeholder="Any damage or missing pieces?" />
+    </div>
+    <button class="btn-submit" onclick="submitReturn()">Confirm return</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ─── CONFIGURATION ──────────────────────────────────────────────────────────
+  // After deploying your Google Apps Script, paste the web app URL here:
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRW6_WJiVkXbqCI36ipIBLEo7zXBZWgI7Y_mm0kN--oo0bUV7T0jVEN6N1x7Fud1dx/exec';  // e.g. 'https://script.google.com/macros/s/YOUR_ID/exec'
+
+  // ─── INVENTORY DATA ─────────────────────────────────────────────────────────
+  const inventory = [
+    { id:  1, name: 'Wooden Hammer Peg',              icon: '🔨', category: 'Fine motor',  qty:  1, description: 'Hammering & peg placement' },
+    { id:  2, name: 'Beads and Thread Activity',      icon: '📿', category: 'Fine motor',  qty:  1, description: 'Threading & bilateral coordination' },
+    { id:  3, name: 'Textured Sensory Mat',           icon: '🟩', category: 'Sensory',     qty:  1, description: 'Tactile texture exploration' },
+    { id:  4, name: 'Fine Motor Activity Kit',        icon: '🧰', category: 'Fine motor',  qty:  4, description: 'Multi-task fine motor kit' },
+    { id:  5, name: 'Wooden Stacking Rings',          icon: '🔵', category: 'Fine motor',  qty:  2, description: 'Stacking & sequencing' },
+    { id:  6, name: 'Plastic Ring Stand',             icon: '⭕', category: 'Fine motor',  qty:  1, description: 'Ring stacking activity' },
+    { id:  7, name: 'Crepe Bandage',                  icon: '🩹', category: 'ADL',         qty:  1, description: 'Wrapping & edema management' },
+    { id:  8, name: 'Wooden Memory Chess Game',       icon: '♟️', category: 'Cognitive',   qty:  1, description: 'Memory & strategy game' },
+    { id:  9, name: 'Uno Activity',                   icon: '🎴', category: 'Cognitive',   qty:  1, description: 'Turn-taking card game' },
+    { id: 10, name: 'Clips Activity',                 icon: '🖇️', category: 'Fine motor',  qty:  1, description: 'Pinch grip clip task' },
+    { id: 11, name: 'Tooth Pick Stick',                icon: '🥢', category: 'Fine motor',  qty:  1, description: 'Precision pincer grasp task' },
+    { id: 12, name: 'Scissors',                       icon: '✂️', category: 'Fine motor',  qty:  2, description: 'Cutting skill practice' },
+    { id: 13, name: 'Comb',                           icon: '🪮', category: 'ADL',         qty:  1, description: 'Grooming skill practice' },
+    { id: 14, name: 'Kinetic Sand',                   icon: '🏖️', category: 'Sensory',     qty:  1, description: 'Tactile sensory play' },
+    { id: 15, name: 'Spoon and Tong',                 icon: '🥄', category: 'Fine motor',  qty:  1, description: 'Grasp & transfer practice' },
+    { id: 16, name: 'Therapeutty',                    icon: '🟠', category: 'Fine motor',  qty:  3, description: 'Hand strengthening putty' },
+    { id: 17, name: 'Tennis Bats',                    icon: '🎾', category: 'Gross motor', qty:  1, description: 'Hand-eye coordination sport' },
+    { id: 18, name: 'Buds',                           icon: '⚪', category: 'Sensory',     qty:  1, description: 'Sensory stimulation tool' },
+    { id: 19, name: 'Hand Grip Strength Device',      icon: '💪', category: 'Fine motor',  qty:  1, description: 'Grip strength training' },
+    { id: 20, name: 'Fine Motor Grip Strengthener',   icon: '✊', category: 'Fine motor',  qty:  1, description: 'Hand grip strengthening' },
+    { id: 21, name: 'Mushroom Pins, Beads, Linkers',  icon: '🍄', category: 'Fine motor',  qty:  1, description: 'Pinching & linking activity' },
+    { id: 22, name: 'Fascial and Body Massage Roller',icon: '🧘', category: 'Sensory',     qty:  1, description: 'Myofascial release & massage' },
+    { id: 23, name: 'Therapressure Brush',            icon: '🖌️', category: 'Sensory',     qty:  1, description: 'Deep pressure brushing' },
+    { id: 24, name: 'Acupressure Foot Mat',           icon: '🦶', category: 'Sensory',     qty:  1, description: 'Foot sensory stimulation' },
+    { id: 25, name: 'Maze Puzzle Board',              icon: '🧩', category: 'Cognitive',   qty:  1, description: 'Problem solving maze task' },
+    { id: 26, name: 'Fidget Toy',                     icon: '🌀', category: 'Sensory',     qty:  1, description: 'Self-regulation & focus tool' },
+    { id: 27, name: 'Wooden Lacing Fish',             icon: '🐟', category: 'Fine motor',  qty:  1, description: 'Lacing & threading activity' },
+    { id: 28, name: '4-Wheel Skate Rollers',          icon: '🛼', category: 'Gross motor', qty:  1, description: 'Balance & mobility training' },
+    { id: 29, name: 'Flash Cards',                    icon: '📋', category: 'Cognitive',   qty:  1, description: 'Learning & memory cards' },
+    { id: 30, name: 'Electric Hot Pack',              icon: '🔥', category: 'ADL',         qty:  2, description: 'Heat therapy modality' },
+    { id: 31, name: 'Finger Exercise Hand Gripper',   icon: '✊', category: 'Fine motor',  qty:  1, description: 'Finger strengthening exerciser' },
+    { id: 32, name: 'Gaiters (Size 2)',               icon: '🦵', category: 'Gross motor', qty:  1, description: 'Lower limb support & gait' },
+    { id: 33, name: 'Mushroom Peg Board',             icon: '🍄', category: 'Fine motor',  qty:  1, description: 'Peg placement fine motor task' },
+    { id: 34, name: 'Weight Cuffs',                   icon: '🦾', category: 'Gross motor', qty:  3, description: 'Proprioception & strengthening' },
+    { id: 35, name: '1kg Weight Cuffs',               icon: '🦾', category: 'Gross motor', qty:  2, description: '1kg resistance strengthening' },
+    { id: 36, name: 'Foot Print Mat',                 icon: '👣', category: 'Gross motor', qty:  7, description: 'Gait & footstep training' },
+    { id: 37, name: 'Botronix Finger Dexterity Test', icon: '🖐️', category: 'Assessment',  qty:  1, description: 'Finger dexterity assessment' },
+    { id: 38, name: 'Wooden Dressing Frame',          icon: '🧥', category: 'ADL',         qty:  4, description: 'Dressing skill practice frame' },
+    { id: 39, name: 'Three Sticks',                   icon: '🥢', category: 'Cognitive',   qty:  1, description: 'Sequencing & pattern activity' },
+    { id: 40, name: 'Mathematical Intelligence Stick',icon: '➗', category: 'Cognitive',   qty:  1, description: 'Numeracy & pattern learning' },
+    { id: 41, name: 'Cognitive Directions',           icon: '🧭', category: 'Cognitive',   qty:  1, description: 'Directionality & orientation task' },
+    { id: 42, name: 'Memory Skills',                  icon: '🧠', category: 'Cognitive',   qty:  1, description: 'Memory training activity' },
+    { id: 43, name: 'Topple',                         icon: '🧱', category: 'Cognitive',   qty:  1, description: 'Balance & stacking strategy game' },
+    { id: 44, name: 'Number Counting Pegs',           icon: '🔢', category: 'Cognitive',   qty:  1, description: 'Number counting & sequencing' },
+    { id: 45, name: 'Mandala Art Kit',                icon: '🎨', category: 'Fine motor',  qty:  1, description: 'Creative fine motor art' },
+    { id: 46, name: 'Wooden Peg Board',               icon: '🪵', category: 'Fine motor',  qty:  1, description: 'Peg placement task' },
+    { id: 47, name: 'Geometric Shape Jigsaw Puzzle',  icon: '🧩', category: 'Cognitive',   qty:  1, description: 'Shape recognition puzzle' },
+    { id: 48, name: 'Jigsaw Boards',                  icon: '🧩', category: 'Cognitive',   qty:  8, description: 'Picture matching puzzle' },
+    { id: 49, name: 'Wooden Embroidery Board',        icon: '🪡', category: 'Fine motor',  qty:  3, description: 'Embroidery & threading practice' },
+    { id: 50, name: 'Round Finger Exerciser',         icon: '⭕', category: 'Fine motor',  qty:  2, description: 'Finger strengthening exerciser' },
+    { id: 51, name: 'Spelling Fun',                   icon: '🔤', category: 'Cognitive',   qty:  1, description: 'Spelling & language activity' },
+    { id: 52, name: 'Ronnie Fast Sling Puck Game Board', icon: '🏒', category: 'Gross motor', qty: 1, description: 'Hand-eye coordination game' },
+    { id: 53, name: 'Ludo, Snake and Ladder',         icon: '🎲', category: 'Cognitive',   qty:  1, description: 'Turn-taking board games' },
+    { id: 54, name: 'Building Blocks',                icon: '🧱', category: 'Fine motor',  qty:  1, description: 'Construction & fine motor play' },
+    { id: 55, name: 'Test Tube Stand',                icon: '🧪', category: 'Fine motor',  qty:  1, description: 'Insertion & fine motor task' },
+    { id: 56, name: 'Resin Mold',                     icon: '🧊', category: 'Fine motor',  qty:  2, description: 'Creative fine motor activity' },
+    { id: 57, name: 'Crochet Thread',                 icon: '🧶', category: 'Fine motor',  qty:  1, description: 'Threading & fine motor task' },
+    { id: 58, name: 'Tongue Depressor',               icon: '🪵', category: 'Assessment',  qty:  1, description: 'Oral motor assessment tool' },
+    { id: 59, name: 'Woollen Thread',                 icon: '🧶', category: 'Fine motor',  qty:  1, description: 'Threading & weaving activity' },
+    { id: 60, name: 'Pom Poms',                       icon: '🟣', category: 'Fine motor',  qty:  1, description: 'Grasp & transfer practice' },
+    { id: 61, name: 'Plastic Rubber Bands',           icon: '🟢', category: 'Fine motor',  qty:  1, description: 'Pinch & stretch activity' },
+    { id: 62, name: 'Chamki and Beads',               icon: '✨', category: 'Fine motor',  qty:  1, description: 'Threading & sorting activity' },
+    { id: 63, name: 'Ice Cream Sticks',               icon: '🍦', category: 'Fine motor',  qty:  1, description: 'Construction & fine motor task' },
+    { id: 64, name: 'Snellen Chart',                  icon: '👁️', category: 'Assessment',  qty:  1, description: 'Visual acuity assessment' },
+    { id: 65, name: 'Wonder Arms',                    icon: '💪', category: 'Gross motor', qty:  1, description: 'Upper limb exercise device' },
+    { id: 66, name: 'ADL Kit',                        icon: '🧴', category: 'ADL',         qty:  1, description: 'Activities of daily living practice' },
+    { id: 67, name: 'Memory Cards',                   icon: '🃏', category: 'Cognitive',   qty:  1, description: 'Memory matching card game' },
+    { id: 68, name: 'Jumbo Crayons',                  icon: '🖍️', category: 'Fine motor',  qty:  3, description: 'Grasp & pre-writing practice' },
+    { id: 69, name: 'Hiding Blocks',                  icon: '🧊', category: 'Cognitive',   qty:  1, description: 'Object permanence & memory task' },
+    { id: 70, name: 'Tangram',                        icon: '🔺', category: 'Cognitive',   qty:  1, description: 'Shape assembly puzzle' },
+    { id: 71, name: 'Cutting Board and Knife',        icon: '🔪', category: 'ADL',         qty:  1, description: 'Meal prep skill practice' },
+    { id: 72, name: 'Transparent Covering Sheet',     icon: '📄', category: 'ADL',         qty:  1, description: 'Protective work surface sheet' },
+    { id: 73, name: 'Plinth',                         icon: '🛏️', category: 'Gross motor', qty:  4, description: 'Treatment & positioning table' },
+    { id: 74, name: 'Bolster',                        icon: '🛹', category: 'Gross motor', qty:  5, description: 'Positioning & balance' },
+    { id: 75, name: 'Plastic Training Cones',         icon: '🔺', category: 'Gross motor', qty:  4, description: 'Motor obstacle & coordination' },
+    { id: 76, name: 'Back Support',                   icon: '🎗️', category: 'ADL',         qty:  1, description: 'Postural back support brace' },
+    { id: 77, name: 'Shoulder Pull Up Bar',           icon: '🪢', category: 'Gross motor', qty:  2, description: 'Shoulder range of motion' },
+    { id: 78, name: 'Shoulder Sling',                 icon: '🩹', category: 'ADL',         qty:  1, description: 'Shoulder support & positioning' },
+    { id: 79, name: 'Shoulder Adjustable Brace',      icon: '🦾', category: 'ADL',         qty:  1, description: 'Shoulder stabilization brace' },
+    { id: 80, name: 'Lumbo Sacral Belt',              icon: '🩹', category: 'ADL',         qty:  1, description: 'Lower back support belt' },
+    { id: 81, name: 'Therapy Ball',                   icon: '🏐', category: 'Gross motor', qty:  1, description: 'Core strength & balance' },
+    { id: 82, name: 'Foot Ball',                      icon: '⚽', category: 'Gross motor', qty:  1, description: 'Kicking & coordination play' },
+    { id: 83, name: 'Peanut Ball',                    icon: '🥜', category: 'Gross motor', qty:  1, description: 'Core & trunk strengthening' },
+    { id: 84, name: 'Mirror Box',                     icon: '🪞', category: 'Cognitive',   qty:  1, description: 'Mirror therapy for motor recovery' },
+    { id: 85, name: 'Dexterity Board',                icon: '🖐️', category: 'Fine motor',  qty:  1, description: 'Manual dexterity training board' },
+    { id: 86, name: 'Hand Dynamometer Set',            icon: '💪', category: 'Assessment',  qty:  1, description: 'Grip strength measurement set' },
+    { id: 87, name: 'KAFO (Knee-Ankle-Foot Orthosis)', icon: '🦿', category: 'Gross motor', qty:  1, description: 'Plastic-metal lower limb orthosis' },
+    { id: 88, name: 'Elbow Gaiter',                    icon: '🫷', category: 'Gross motor', qty:  1, description: 'Lower limb support & gait' },
+    { id: 89, name: 'Pronator Supinator',              icon: '🔄', category: 'Fine motor',  qty:  1, description: 'Forearm pronation/supination exerciser' },
+  ];
+
+  // ─── STATE ───────────────────────────────────────────────────────────────────
+  // borrowedItems: { itemId: { name, borrower, ward, borrowTime, estReturn, notes } }
+  const borrowed = {};
+  let log = [];
+  let currentFilter = 'all';
+  let activeItemId = null;
+
+  // ─── RENDER ──────────────────────────────────────────────────────────────────
+  function renderGrid() {
+    const grid = document.getElementById('inventory-grid');
+    grid.innerHTML = '';
+    let available = 0, borrowedCount = 0;
+    const searchTerm = (document.getElementById('search-input').value || '').trim().toLowerCase();
+
+    inventory.forEach(item => {
+      const isBorrowed = !!borrowed[item.id];
+      if (isBorrowed) borrowedCount++; else available++;
+
+      let show = true;
+      if (currentFilter === 'available' && isBorrowed) show = false;
+      if (currentFilter === 'borrowed' && !isBorrowed) show = false;
+      if (!['all','available','borrowed'].includes(currentFilter) && item.category !== currentFilter) show = false;
+      if (searchTerm && !item.name.toLowerCase().includes(searchTerm)) show = false;
+
+      if (!show) return;
+
+      const card = document.createElement('div');
+      card.className = 'item-card' + (isBorrowed ? ' borrowed' : '');
+      const b = borrowed[item.id];
+      card.innerHTML = `
+        <span class="quantity-badge">×${item.qty}</span>
+        <div class="item-icon">${item.icon}</div>
+        <div>
+          <div class="item-name">${item.name}</div>
+          <div class="item-category">${item.category} · ${item.description}</div>
+        </div>
+        <div class="item-status ${isBorrowed ? 'status-borrowed' : 'status-available'}">
+          ${isBorrowed ? 'Out' : 'Available'}
+        </div>
+        ${isBorrowed ? `<div class="borrower-info">By <strong>${b.borrower}</strong><br>${b.ward} · since ${b.borrowTime}</div>` : ''}
+        <div class="card-actions">
+          <button class="btn-borrow" onclick="openBorrow(${item.id})" ${isBorrowed ? 'disabled' : ''}>Borrow</button>
+          ${isBorrowed ? `<button class="btn-return" onclick="openReturn(${item.id})">Return</button>` : ''}
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    document.getElementById('count-available').textContent = available;
+    document.getElementById('count-borrowed').textContent = borrowedCount;
+  }
+
+  // ─── FILTER ──────────────────────────────────────────────────────────────────
+  function filterItems(type, btn) {
+    currentFilter = type;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderGrid();
+  }
+
+  // ─── MODAL HELPERS ───────────────────────────────────────────────────────────
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  function nowTime() {
+    const d = new Date();
+    return d.toTimeString().slice(0,5);
+  }
+
+  // ─── BORROW FLOW ─────────────────────────────────────────────────────────────
+  function openBorrow(itemId) {
+    const item = inventory.find(i => i.id === itemId);
+    activeItemId = itemId;
+    document.getElementById('borrow-icon').textContent = item.icon;
+    document.getElementById('borrow-title').textContent = 'Borrow — ' + item.name;
+    document.getElementById('borrow-subtitle').textContent = item.description;
+    document.getElementById('borrow-time').value = nowTime();
+    document.getElementById('borrow-return-est').value = '';
+    document.getElementById('borrow-name').value = '';
+    document.getElementById('borrow-ward').value = '';
+    document.getElementById('borrow-notes').value = '';
+    openModal('borrow-modal');
+  }
+
+  function submitBorrow() {
+    const name = document.getElementById('borrow-name').value.trim();
+    const ward = document.getElementById('borrow-ward').value.trim();
+    const time = document.getElementById('borrow-time').value;
+    const estReturn = document.getElementById('borrow-return-est').value;
+    const notes = document.getElementById('borrow-notes').value.trim();
+
+    if (!name || !ward || !time) { alert('Please fill in your name, ward and borrow time.'); return; }
+
+    const item = inventory.find(i => i.id === activeItemId);
+    borrowed[activeItemId] = { name: item.name, borrower: name, ward, borrowTime: time, estReturn, notes };
+
+    const entry = { action: 'Borrow', item: item.name, staff: name, ward, time, estReturn, notes, date: new Date().toLocaleDateString('en-IN') };
+    log.unshift(entry);
+    renderLog();
+    sendToSheet(entry);
+
+    closeModal('borrow-modal');
+    renderGrid();
+    showToast(item.icon + ' ' + item.name + ' borrowed by ' + name);
+  }
+
+  // ─── RETURN FLOW ─────────────────────────────────────────────────────────────
+  function openReturn(itemId) {
+    const item = inventory.find(i => i.id === itemId);
+    activeItemId = itemId;
+    document.getElementById('return-icon').textContent = item.icon;
+    document.getElementById('return-title').textContent = 'Return — ' + item.name;
+    const b = borrowed[itemId];
+    document.getElementById('return-subtitle').textContent = 'Borrowed by ' + b.borrower + ' at ' + b.borrowTime;
+    document.getElementById('return-time').value = nowTime();
+    document.getElementById('return-name').value = b.borrower;
+    document.getElementById('return-notes').value = '';
+    openModal('return-modal');
+  }
+
+  function submitReturn() {
+    const name = document.getElementById('return-name').value.trim();
+    const time = document.getElementById('return-time').value;
+    const condition = document.getElementById('return-condition').value;
+    const notes = document.getElementById('return-notes').value.trim();
+
+    if (!name || !time) { alert('Please fill in your name and return time.'); return; }
+
+    const item = inventory.find(i => i.id === activeItemId);
+    const originalBorrow = borrowed[activeItemId];
+    delete borrowed[activeItemId];
+
+    const entry = { action: 'Return', item: item.name, staff: name, ward: originalBorrow.ward, time, condition, notes, date: new Date().toLocaleDateString('en-IN') };
+    log.unshift(entry);
+    renderLog();
+    sendToSheet(entry);
+
+    closeModal('return-modal');
+    renderGrid();
+    showToast(item.icon + ' ' + item.name + ' returned — thank you!');
+  }
+
+  // ─── LOG TABLE ───────────────────────────────────────────────────────────────
+  function renderLog() {
+    const tbody = document.getElementById('log-body');
+    if (log.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="log-empty">No activity yet today</td></tr>';
+      return;
+    }
+    tbody.innerHTML = log.map(e => `
+      <tr>
+        <td><strong>${e.item}</strong></td>
+        <td>${e.staff}</td>
+        <td>${e.ward || '—'}</td>
+        <td>${e.time}</td>
+        <td><span class="log-badge ${e.action === 'Borrow' ? 'log-badge-borrow' : 'log-badge-return'}">${e.action}</span></td>
+      </tr>
+    `).join('');
+  }
+
+  // ─── TOAST ───────────────────────────────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ─── GOOGLE SHEETS INTEGRATION ───────────────────────────────────────────────
+  function sendToSheet(entry) {
+    if (!APPS_SCRIPT_URL) return;
+    const params = new URLSearchParams({
+      action:    entry.action,
+      item:      entry.item,
+      staff:     entry.staff,
+      ward:      entry.ward || '',
+      time:      entry.time,
+      estReturn: entry.estReturn || '',
+      condition: entry.condition || '',
+      notes:     entry.notes || '',
+      date:      entry.date
+    });
+    fetch(APPS_SCRIPT_URL + '?' + params.toString(), {
+      method: 'GET',
+      mode: 'no-cors'
+    }).catch(err => console.warn('Sheet sync failed:', err));
+  }
+
+  // Close modal on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  });
+
+  // Init
+  document.getElementById('header-subtitle').textContent = inventory.length + ' items · Updated 09-07-26 | Dr. Malcolm Shadrach (OT)';
+  renderGrid();
+  renderLog();
+</script>
+</body>
+</html>
