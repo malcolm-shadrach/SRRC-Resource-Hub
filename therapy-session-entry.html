@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<script src="theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FORM DASHBOARD</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&display=swap">
@@ -19,11 +18,10 @@
   }
 }
 :root[data-theme="dark"]{
-  color-scheme:dark;
   --bg:#0A0A0A; --surface:#161616; --ink:#FFFFFF; --muted:#ABABAB; --line:#2C2C2C; --line-strong:#4A4A4A;
   --chip-dark:#FFFFFF; --chip-dark-ink:#0A0A0A;
 }
-html{background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px);color-scheme:light}
+html{background:#0A0A0A;scroll-padding-top:env(safe-area-inset-top,0px);color-scheme:light dark}
 *,*::before,*::after{box-sizing:inherit}
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 "Archivo","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;min-height:100vh}
 .wrap{max-width:880px;margin:0 auto;padding:0 20px}
@@ -93,12 +91,6 @@ a.row:hover .open-icon{color:var(--orange);transform:translate(2px,-2px)}
   .seg button{font-size:.82rem}
   a.row{padding-left:12px;padding-right:12px}
 }
-
-:root[data-theme="light"]{color-scheme:light;--bg:#FFFFFF;--surface:#FFFFFF;--ink:#0A0A0A;--muted:#575757;--line:#E2E2E2;--line-strong:#B8B8B8;--chip-dark:#0A0A0A;--chip-dark-ink:#FFFFFF}
-:root[data-theme="dark"] .top{background:#0A0A0A;color:#FFFFFF}
-:root[data-theme="light"] .top{background:#0A0A0A;color:#FFFFFF}
-.srrc-theme-toggle{position:fixed;right:14px;top:14px;z-index:1000;border:1px solid var(--line-strong);border-radius:999px;padding:9px 13px;background:var(--surface);color:var(--ink);font:600 12px "Archivo",sans-serif;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.16)}
-.srrc-embedded .srrc-theme-toggle{display:none}
 </style>
 </head>
 <body>
